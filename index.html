@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Comparador de SINTEGRA</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h1>Comparador de SINTEGRA</h1>
+<p>Selecione os dois arquivos SINTEGRA</p>
+<input type="file" id="arquivos" multiple>
+<p id="infoArquivos"></p>
+
+<div class="painel-filtro">
+  <div class="titulo-filtro">FILTRO</div>
+  <button onclick="filtrar('todos')">Todos</button>
+  <button onclick="filtrar('cfop')">CFOP divergente</button>
+  <button onclick="filtrar('valor')">Valor diferente</button>
+  <button onclick="filtrar('arquivo1')">Só arquivo 1</button>
+  <button onclick="filtrar('arquivo2')">Só arquivo 2</button>
+</div>
+
+<table id="tabelaResultado">
+  <thead>
+    <tr>
+      <th>CNPJ do fornecedor</th>
+      <th>Número da nota</th>
+      <th>CFOP arquivo 1</th>
+      <th>CFOP arquivo 2</th>
+      <th>Valor arquivo 1</th>
+      <th>Valor arquivo 2</th>
+      <th>Erro apontado</th>
+    </tr>
+  </thead>
+  <tbody id="corpoTabela"></tbody>
+</table>
+
+<script>
+
+  // ─── Lê arquivo como texto (encoding Windows-1252 padrão SINTEGRA) ──────────
+  function lerArquivo(file) {
+    return new Promise((resolve) => {
+      const reader = new FileReader()
+      reader.onload = e => resolve(e.target.result)
+      reader.readAsText(file, 'windows-1252')
+    })
+  }
+
+  // ─── Formata número como moeda brasileira ────────────────────────────────────
+  function formatarValor(v) {
+    return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+  }
+
+  // ─── Extrai notas do registro 50 (layout fixo oficial SINTEGRA) ──────────────
+  // Layout do registro 50 (posições 0-indexed):
+  // [0:2]   tipo do registro ("50")
+  // [2:16]  CNPJ do emitente (14)
+  // [16:30] inscrição estadual (14)
+  // [30:38] data de emissão (8)    ex: "20260105"
+  // [38:40] UF (2)                 ex: "SP"
+  // [40:42] modelo do documento (2) ex: "55"
+  // [42:45] série (3)              ex: "1  "
+  // [45:51] número da nota fiscal (6)  ← campo correto
+  // [51:55] CFOP (4)                   ← campo correto
+  // [55:56] emitente (1)           ex: "P" ou "T"
+  // [56:70] valor total da nota (14)   ← 14 dígitos, não 13
+  function extrairNotas(texto) {
+    const linhas = texto.split(/\r?\n/)
+    const notas = []
+
+    for (let linha of linhas) {
+      if (!linha) continue
+      if (linha.substring(0, 2) !== "50") continue
+
+      try {
+        const cnpj   = linha.substring(2, 16).trim()
+        const numero = linha.substring(45, 51).trim()
+        const cfop   = linha.substring(51, 55).trim()
+        const valor  = (parseInt(linha.substring(56, 69)) || 0) / 100
+
+        notas.push({ cnpj, numero, cfop, valor })
+      } catch (e) {
+        console.log("Linha ignorada:", linha)
+      }
+    }
+
+    return notas
+  }
+
+  // ─── Compara notas entre os dois arquivos e monta a tabela ───────────────────
+  function compararNotas(notas1, notas2) {
+    const tabela = document.getElementById("corpoTabela")
+    tabela.innerHTML = ""
+
+    // Notas do arquivo 1 que divergem do arquivo 2
+    for (let nota1 of notas1) {
+      const match = notas2.find(
+        n => n.cnpj === nota1.cnpj && n.numero === nota1.numero && n.cfop === nota1.cfop
+      )
+
+      if (!match) {
+        tabela.innerHTML += `
+          <tr data-tipo="arquivo1">
+            <td>${nota1.cnpj}</td>
+            <td>${nota1.numero}</td>
+            <td>${nota1.cfop}</td>
+            <td>-</td>
+            <td>${formatarValor(nota1.valor)}</td>
+            <td>-</td>
+            <td>Nota não existe no arquivo 2</td>
+          </tr>`
+      } else if (Math.abs(nota1.valor - match.valor) > 0.001) {
+        tabela.innerHTML += `
+          <tr data-tipo="valor">
+            <td>${nota1.cnpj}</td>
+            <td>${nota1.numero}</td>
+            <td>${nota1.cfop}</td>
+            <td>${match.cfop}</td>
+            <td>${formatarValor(nota1.valor)}</td>
+            <td>${formatarValor(match.valor)}</td>
+            <td>Valor diferente</td>
+          </tr>`
+      }
+    }
+
+    // Notas do arquivo 2 que não existem no arquivo 1
+    for (let nota2 of notas2) {
+      const match = notas1.find(
+        n => n.cnpj === nota2.cnpj && n.numero === nota2.numero && n.cfop === nota2.cfop
+      )
+      if (!match) {
+        tabela.innerHTML += `
+          <tr data-tipo="arquivo2">
+            <td>${nota2.cnpj}</td>
+            <td>${nota2.numero}</td>
+            <td>-</td>
+            <td>${nota2.cfop}</td>
+            <td>-</td>
+            <td>${formatarValor(nota2.valor)}</td>
+            <td>Nota não existe no arquivo 1</td>
+          </tr>`
+      }
+    }
+  }
+
+  // ─── Filtra as linhas da tabela por tipo de erro ─────────────────────────────
+  function filtrar(tipo) {
+    const linhas = document.querySelectorAll("#corpoTabela tr")
+    linhas.forEach(linha => {
+      if (tipo === "todos") {
+        linha.style.display = ""
+      } else {
+        linha.style.display = linha.dataset.tipo === tipo ? "" : "none"
+      }
+    })
+  }
+
+  // ─── Evento: ao selecionar os arquivos ───────────────────────────────────────
+  document.getElementById("arquivos").addEventListener("change", async function () {
+    const arquivos = this.files
+
+    if (arquivos.length !== 2) {
+      alert("Selecione exatamente 2 arquivos")
+      return
+    }
+
+    document.getElementById("infoArquivos").innerHTML = `
+      <b>Arquivo 1:</b> ${arquivos[0].name} <br>
+      <b>Arquivo 2:</b> ${arquivos[1].name}
+    `
+
+    const texto1 = await lerArquivo(arquivos[0])
+    const texto2 = await lerArquivo(arquivos[1])
+
+    const notas1 = extrairNotas(texto1)
+    const notas2 = extrairNotas(texto2)
+
+    compararNotas(notas1, notas2)
+  })
+
+</script>
+
+</body>
+</html>
