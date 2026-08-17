@@ -1,44 +1,143 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Comparador de SINTEGRA</title>
-  <link rel="stylesheet" href="style.css">
+
+  <style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{--navy:#1a2a4a;--navy2:#25396e;--bg:#f0f2f5;--card:#fff;--text:#222;--muted:#6b7a90;--border:#d7dee8;--soft:#e8edf5;--shadow:0 1px 5px rgba(0,0,0,.07)}
+  html{scroll-behavior:smooth}
+  body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+  body.dark{--navy:#14213a;--navy2:#2b4279;--bg:#111827;--card:#1b2433;--text:#edf2f7;--muted:#a9b6c8;--border:#334155;--soft:#253144;--shadow:0 2px 8px rgba(0,0,0,.28)}
+  header{background:var(--navy);color:#fff;padding:16px 32px;display:flex;justify-content:space-between;align-items:center;gap:18px;position:sticky;top:0;z-index:20}
+  .header-title{font-size:1.15rem;font-weight:700}.header-sub{font-size:.76rem;opacity:.8;margin-top:2px}
+  .theme-btn{border:1px solid rgba(255,255,255,.25);background:transparent;color:#fff;border-radius:999px;padding:7px 12px;cursor:pointer;font-weight:600}
+  .container{max-width:1180px;margin:28px auto;padding:0 16px 80px}
+  .upload-row{display:flex;gap:18px;margin-bottom:18px;align-items:flex-start}
+  .upload-card{flex:1;background:var(--card);border-radius:10px;border:2px dashed var(--border);padding:22px 20px;text-align:left;box-shadow:var(--shadow)}
+  .upload-card.has-file{border-color:#4caf50;border-style:solid}
+  .upload-card label{display:inline-block;cursor:pointer}
+  .card-title{font-size:.76rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:9px}
+  .card-name{font-size:1rem;font-weight:650;color:var(--navy);margin-bottom:10px}.dark .card-name{color:#dbe7ff}
+  .upload-card input[type=file]{display:none}
+  .file-label{display:inline-block;margin-top:10px;padding:9px 18px;background:var(--soft);border-radius:6px;font-size:.92rem;color:var(--navy);font-weight:600;border:1px solid var(--border)}
+  .dark .file-label{color:#eef4ff}
+  .file-info{margin-top:9px;font-size:.9rem;color:var(--muted);font-weight:550;min-height:18px}
+  .btn{border:none;border-radius:8px;cursor:pointer;font-weight:700}.btn-primary{background:var(--navy);color:#fff}.btn-secondary{background:var(--soft);color:var(--navy);border:1px solid var(--border)}
+  .filter-row{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}.filter-btn{padding:7px 12px;border:1.5px solid var(--border);border-radius:20px;background:var(--card);color:var(--text);font-size:.8rem;cursor:pointer;font-weight:650}
+  .filter-btn.active{background:var(--navy);color:#fff;border-color:var(--navy)}.count-badge{display:inline-block;background:var(--soft);border-radius:10px;padding:1px 6px;font-size:.7rem;margin-left:5px;color:var(--navy);font-weight:750}
+  .results{background:var(--card);border-radius:10px;overflow:hidden;box-shadow:var(--shadow);border:1px solid var(--border);margin-top:12px}
+  .results-header,.result-row{display:grid;grid-template-columns:160px 110px 140px 140px 140px 140px minmax(200px,1fr);gap:12px}
+  .results-header{background:var(--navy);color:#fff;font-size:.77rem;font-weight:750;padding:11px 16px}
+  .result-row{padding:11px 16px;border-bottom:1px solid var(--border);align-items:start;font-size:.84rem}.result-row:last-child{border-bottom:none}
+  .result-row:hover{background:var(--soft)}.nota-num{font-weight:750;color:var(--navy)}.dark .nota-num{color:#dbe7ff}
+  .tag{display:inline-block;padding:6px 10px;border-radius:12px;font-size:.78rem;font-weight:750}
+  .tag-nota_nao_encontrada{background:#fce4ec;color:#c62828}
+  .tag-divergencia_valor{background:#e3f2fd;color:#1565c0}
+  .tag-cfop{
+  background:#fff3cd;
+  color:#856404;
+}
+
+.tag-cfop_valor{
+  background:#f3e5f5;
+  color:#7b1fa2;
+}
+  .empty{text-align:center;padding:42px;color:var(--muted)}.table-footer{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;border-top:1px solid var(--border);flex-wrap:wrap}
+  .top-btn{position:fixed;right:22px;bottom:22px;display:none;z-index:30;padding:10px 13px;border-radius:999px;background:var(--navy);color:#fff;border:none;box-shadow:0 4px 14px rgba(0,0,0,.18);cursor:pointer;font-weight:700}.top-btn.show{display:block}
+  /* Nova área lateral de informações */
+  .info-panel{
+    width:320px;
+    background:var(--card);
+    border-radius:10px;
+    padding:18px;
+    border:1px solid var(--border);
+    box-shadow:var(--shadow);
+    font-size:.95rem;
+    color:var(--muted);
+  }
+  .info-panel .info-title{font-weight:700;color:var(--navy);margin-bottom:8px}
+  .info-panel .file-line{margin-bottom:8px;display:flex;justify-content:space-between;gap:8px;align-items:center}
+  .info-panel .file-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text);font-weight:600}
+  .info-panel .file-meta{font-size:.82rem;color:var(--muted)}
+  .info-empty{color:var(--muted);font-size:.9rem}
+  /* Responsividade */
+  @media(max-width:900px){
+    .upload-row{flex-direction:column}
+    .info-panel{width:100%}
+    .results-header,.result-row{grid-template-columns:120px 90px 120px 120px 120px 120px minmax(160px,1fr)}
+  }
+  @media(max-width:700px){
+    header{padding:14px 16px}.header-sub{display:none}
+    .results{overflow-x:auto}.results-header,.result-row{min-width:980px}
+  }
+  </style>
 </head>
 <body>
 
-<h1>Comparador de SINTEGRA</h1>
-<p>Selecione os dois arquivos SINTEGRA</p>
-<input type="file" id="arquivos" multiple>
-<p id="infoArquivos"></p>
+  <header>
+    <div>
+      <div class="header-title">Comparador de SINTEGRA</div>
+      <div class="header-sub">Selecione dois arquivos para comparar notas</div>
+    </div>
+    <button class="theme-btn" id="toggleTheme" title="Alternar tema">Tema</button>
+  </header>
 
-<div class="painel-filtro">
-  <div class="titulo-filtro">FILTRO</div>
-  <button onclick="filtrar('todos')">Todos</button>
-  <button onclick="filtrar('cfop')">CFOP divergente</button>
-  <button onclick="filtrar('valor')">Valor diferente</button>
-  <button onclick="filtrar('arquivo1')">Só arquivo 1</button>
-  <button onclick="filtrar('arquivo2')">Só arquivo 2</button>
-</div>
+  <main class="container">
+    <!-- Upload area com painel lateral de informações -->
+    <div class="upload-row">
+      <div class="upload-card" id="uploadCard">
+        <div class="card-title">Arquivos SINTEGRA</div>
+        <div class="card-name">Selecione os dois arquivos</div>
 
-<table id="tabelaResultado">
-  <thead>
-    <tr>
-      <th>CNPJ do fornecedor</th>
-      <th>Número da nota</th>
-      <th>CFOP arquivo 1</th>
-      <th>CFOP arquivo 2</th>
-      <th>Valor arquivo 1</th>
-      <th>Valor arquivo 2</th>
-      <th>Erro apontado</th>
-    </tr>
-  </thead>
-  <tbody id="corpoTabela"></tbody>
-</table>
+        <label for="arquivos" class="file-label">Escolher arquivos</label>
+        <input type="file" id="arquivos" multiple aria-label="Selecione dois arquivos SINTEGRA">
+
+        <div class="file-info" id="infoArquivosInline">Nenhum arquivo escolhido</div>
+      </div>
+
+      <!-- Painel lateral que usa o espaço em branco para exibir informações -->
+      <aside class="info-panel" id="infoPanel">
+        <div class="info-title">Informações dos arquivos</div>
+        <div id="infoArquivos" class="info-empty">Nenhum arquivo selecionado</div>
+        <div style="margin-top:12px;">
+          <div style="font-size:.85rem;color:var(--muted)">Dica: selecione exatamente 2 arquivos SINTEGRA para comparar.</div>
+        </div>
+      </aside>
+    </div>
+
+    <!-- Filtros -->
+    <div class="filter-row">
+      <div class="card-title" style="margin-right:8px">FILTRO</div>
+      <button class="filter-btn" onclick="filtrar('todos')">Todos</button>
+      <button class="filter-btn" onclick="filtrar('cfop')">CFOP divergente</button>
+      <button class="filter-btn" onclick="filtrar('valor')">Valor diferente</button>
+      <button class="filter-btn" onclick="filtrar('arquivo1')">Só arquivo 1</button>
+      <button class="filter-btn" onclick="filtrar('arquivo2')">Só arquivo 2</button>
+    </div>
+
+    <!-- Resultados -->
+    <div class="results" id="resultsWrapper">
+      <table id="tabelaResultado" style="width:100%;border-collapse:collapse;">
+        <thead class="results-header">
+          <tr style="display:contents;">
+            <th>CNPJ do fornecedor</th>
+            <th>Número da nota</th>
+            <th>CFOP arquivo 1</th>
+            <th>CFOP arquivo 2</th>
+            <th>Valor arquivo 1</th>
+            <th>Valor arquivo 2</th>
+            <th>Erro apontado</th>
+          </tr>
+        </thead>
+        <tbody id="corpoTabela"></tbody>
+      </table>
+    </div>
+  </main>
 
 <script>
-
-  // ─── Lê arquivo como texto (encoding Windows-1252 padrão SINTEGRA) ──────────
+  // Lê arquivo como texto (encoding Windows-1252 padrão SINTEGRA)
   function lerArquivo(file) {
     return new Promise((resolve) => {
       const reader = new FileReader()
@@ -47,24 +146,12 @@
     })
   }
 
-  // ─── Formata número como moeda brasileira ────────────────────────────────────
+  // Formata número como moeda brasileira
   function formatarValor(v) {
     return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
   }
 
-  // ─── Extrai notas do registro 50 (layout fixo oficial SINTEGRA) ──────────────
-  // Layout do registro 50 (posições 0-indexed):
-  // [0:2]   tipo do registro ("50")
-  // [2:16]  CNPJ do emitente (14)
-  // [16:30] inscrição estadual (14)
-  // [30:38] data de emissão (8)    ex: "20260105"
-  // [38:40] UF (2)                 ex: "SP"
-  // [40:42] modelo do documento (2) ex: "55"
-  // [42:45] série (3)              ex: "1  "
-  // [45:51] número da nota fiscal (6)  ← campo correto
-  // [51:55] CFOP (4)                   ← campo correto
-  // [55:56] emitente (1)           ex: "P" ou "T"
-  // [56:70] valor total da nota (14)   ← 14 dígitos, não 13
+  // Extrai notas do registro 50
   function extrairNotas(texto) {
     const linhas = texto.split(/\r?\n/)
     const notas = []
@@ -88,64 +175,187 @@
     return notas
   }
 
-  // ─── Compara notas entre os dois arquivos e monta a tabela ───────────────────
-  function compararNotas(notas1, notas2) {
-    const tabela = document.getElementById("corpoTabela")
-    tabela.innerHTML = ""
+  // Compara notas entre os dois arquivos e monta a tabela
+  // Compara notas entre os dois arquivos e monta a tabela
+function compararNotas(notas1, notas2) {
+  const tabela = document.getElementById("corpoTabela")
+  tabela.innerHTML = ""
 
-    // Notas do arquivo 1 que divergem do arquivo 2
-    for (let nota1 of notas1) {
-      const match = notas2.find(
-        n => n.cnpj === nota1.cnpj && n.numero === nota1.numero && n.cfop === nota1.cfop
-      )
+  // Controle das linhas do arquivo 2 que já foram utilizadas
+  const usadasArq2 = new Set()
 
-      if (!match) {
-        tabela.innerHTML += `
-          <tr data-tipo="arquivo1">
-            <td>${nota1.cnpj}</td>
-            <td>${nota1.numero}</td>
-            <td>${nota1.cfop}</td>
-            <td>-</td>
-            <td>${formatarValor(nota1.valor)}</td>
-            <td>-</td>
-            <td>Nota não existe no arquivo 2</td>
-          </tr>`
-      } else if (Math.abs(nota1.valor - match.valor) > 0.001) {
-        tabela.innerHTML += `
-          <tr data-tipo="valor">
-            <td>${nota1.cnpj}</td>
-            <td>${nota1.numero}</td>
-            <td>${nota1.cfop}</td>
-            <td>${match.cfop}</td>
-            <td>${formatarValor(nota1.valor)}</td>
-            <td>${formatarValor(match.valor)}</td>
-            <td>Valor diferente</td>
-          </tr>`
-      }
+  // Agrupa as notas por CNPJ + número da nota
+  const criarChaveNota = (nota) => `${nota.cnpj}|${nota.numero}`
+
+  const mapaArq2 = new Map()
+
+  notas2.forEach((nota, index) => {
+    const chave = criarChaveNota(nota)
+
+    if (!mapaArq2.has(chave)) {
+      mapaArq2.set(chave, [])
     }
 
-    // Notas do arquivo 2 que não existem no arquivo 1
-    for (let nota2 of notas2) {
-      const match = notas1.find(
-        n => n.cnpj === nota2.cnpj && n.numero === nota2.numero && n.cfop === nota2.cfop
-      )
-      if (!match) {
+    mapaArq2.get(chave).push({
+      nota,
+      index
+    })
+  })
+
+  // ==========================================================
+  // ARQUIVO 1 -> ARQUIVO 2
+  // ==========================================================
+
+  for (let nota1 of notas1) {
+    const chave = criarChaveNota(nota1)
+    const candidatos = mapaArq2.get(chave) || []
+
+    // Ignora as linhas do arquivo 2 que já foram relacionadas
+    const disponiveis = candidatos.filter(item => !usadasArq2.has(item.index))
+
+    // Primeiro tenta encontrar exatamente o mesmo CFOP
+    let correspondencia = disponiveis.find(
+      item => item.nota.cfop === nota1.cfop
+    )
+
+    // Se não encontrar pelo mesmo CFOP,
+    // tenta encontrar qualquer ocorrência da mesma nota
+    if (!correspondencia && disponiveis.length > 0) {
+      correspondencia = disponiveis[0]
+    }
+
+    // ========================================================
+    // NOTA NÃO ENCONTRADA NO ARQUIVO 2
+    // ========================================================
+
+    if (!correspondencia) {
+      // Verifica se realmente não existe a nota
+      // ou se todas as ocorrências já foram utilizadas
+      if (candidatos.length === 0) {
         tabela.innerHTML += `
-          <tr data-tipo="arquivo2">
-            <td>${nota2.cnpj}</td>
-            <td>${nota2.numero}</td>
+          <tr data-tipo="arquivo1" class="result-row">
+            <td>${nota1.cnpj}</td>
+            <td class="nota-num">${nota1.numero}</td>
+            <td>${nota1.cfop}</td>
             <td>-</td>
-            <td>${nota2.cfop}</td>
+            <td>${formatarValor(nota1.valor)}</td>
             <td>-</td>
-            <td>${formatarValor(nota2.valor)}</td>
-            <td>Nota não existe no arquivo 1</td>
+            <td>
+              <span class="tag tag-nota_nao_encontrada">
+                Nota não existe no arquivo 2
+              </span>
+            </td>
           </tr>`
       }
+
+      continue
+    }
+
+    // Marca a ocorrência do arquivo 2 como utilizada
+    usadasArq2.add(correspondencia.index)
+
+    const nota2 = correspondencia.nota
+
+    const cfopDiferente = nota1.cfop !== nota2.cfop
+    const valorDiferente = Math.abs(nota1.valor - nota2.valor) > 0.001
+
+    // ========================================================
+    // CFOP + VALOR DIFERENTES
+    // ========================================================
+
+    if (cfopDiferente && valorDiferente) {
+      tabela.innerHTML += `
+        <tr data-tipo="cfop" class="result-row">
+          <td>${nota1.cnpj}</td>
+          <td class="nota-num">${nota1.numero}</td>
+          <td>${nota1.cfop}</td>
+          <td>${nota2.cfop}</td>
+          <td>${formatarValor(nota1.valor)}</td>
+          <td>${formatarValor(nota2.valor)}</td>
+          <td>
+            <span class="tag tag-cfop_valor">
+              CFOP e valor divergentes
+            </span>
+          </td>
+        </tr>`
+
+    // ========================================================
+    // SOMENTE CFOP DIFERENTE
+    // ========================================================
+
+    } else if (cfopDiferente) {
+      tabela.innerHTML += `
+        <tr data-tipo="cfop" class="result-row">
+          <td>${nota1.cnpj}</td>
+          <td class="nota-num">${nota1.numero}</td>
+          <td>${nota1.cfop}</td>
+          <td>${nota2.cfop}</td>
+          <td>${formatarValor(nota1.valor)}</td>
+          <td>${formatarValor(nota2.valor)}</td>
+          <td>
+            <span class="tag tag-cfop">
+              CFOP divergente
+            </span>
+          </td>
+        </tr>`
+
+    // ========================================================
+    // SOMENTE VALOR DIFERENTE
+    // ========================================================
+
+    } else if (valorDiferente) {
+      tabela.innerHTML += `
+        <tr data-tipo="valor" class="result-row">
+          <td>${nota1.cnpj}</td>
+          <td class="nota-num">${nota1.numero}</td>
+          <td>${nota1.cfop}</td>
+          <td>${nota2.cfop}</td>
+          <td>${formatarValor(nota1.valor)}</td>
+          <td>${formatarValor(nota2.valor)}</td>
+          <td>
+            <span class="tag tag-divergencia_valor">
+              Valor diferente
+            </span>
+          </td>
+        </tr>`
     }
   }
 
-  // ─── Filtra as linhas da tabela por tipo de erro ─────────────────────────────
+  // ==========================================================
+  // ARQUIVO 2 -> ARQUIVO 1
+  // Somente o que realmente sobrou sem correspondência
+  // ==========================================================
+
+  notas2.forEach((nota2, index) => {
+
+    if (usadasArq2.has(index)) {
+      return
+    }
+
+    tabela.innerHTML += `
+      <tr data-tipo="arquivo2" class="result-row">
+        <td>${nota2.cnpj}</td>
+        <td class="nota-num">${nota2.numero}</td>
+        <td>-</td>
+        <td>${nota2.cfop}</td>
+        <td>-</td>
+        <td>${formatarValor(nota2.valor)}</td>
+        <td>
+          <span class="tag tag-nota_nao_encontrada">
+            Nota não existe no arquivo 1
+          </span>
+        </td>
+      </tr>`
+  })
+}
+
+  // Filtra as linhas da tabela por tipo de erro e atualiza estado dos botões
   function filtrar(tipo) {
+    document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'))
+    const mapTipoBtn = { 'todos': 0, 'cfop': 1, 'valor': 2, 'arquivo1': 3, 'arquivo2': 4 }
+    const btns = document.querySelectorAll('.filter-btn')
+    if (tipo in mapTipoBtn) btns[mapTipoBtn[tipo]].classList.add('active')
+
     const linhas = document.querySelectorAll("#corpoTabela tr")
     linhas.forEach(linha => {
       if (tipo === "todos") {
@@ -156,7 +366,29 @@
     })
   }
 
-  // ─── Evento: ao selecionar os arquivos ───────────────────────────────────────
+  // Atualiza painel lateral com nomes e metadados simples
+  function atualizarPainelArquivos(files) {
+    const info = document.getElementById('infoArquivos')
+    if (!files || files.length === 0) {
+      info.innerHTML = '<div class="info-empty">Nenhum arquivo selecionado</div>'
+      return
+    }
+    // monta linhas com nome e tamanho
+    let html = ''
+    for (let i = 0; i < files.length; i++) {
+      const f = files[i]
+      const sizeKb = (f.size / 1024).toFixed(0)
+      html += `<div class="file-line"><div class="file-name">${i+1} — ${escapeHtml(f.name)}</div><div class="file-meta">${sizeKb} KB</div></div>`
+    }
+    info.innerHTML = html
+  }
+
+  // pequena função para escapar HTML em nomes de arquivo
+  function escapeHtml(str) {
+    return str.replace(/[&<>"']/g, function(m){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m] })
+  }
+
+  // Evento: ao selecionar os arquivos
   document.getElementById("arquivos").addEventListener("change", async function () {
     const arquivos = this.files
 
@@ -165,10 +397,10 @@
       return
     }
 
-    document.getElementById("infoArquivos").innerHTML = `
-      <b>Arquivo 1:</b> ${arquivos[0].name} <br>
-      <b>Arquivo 2:</b> ${arquivos[1].name}
-    `
+    document.getElementById('uploadCard').classList.add('has-file')
+    // atualiza painel lateral e área inline
+    atualizarPainelArquivos(arquivos)
+    document.getElementById("infoArquivosInline").innerHTML = `<b>Arquivo 1:</b> ${escapeHtml(arquivos[0].name)}<br><b>Arquivo 2:</b> ${escapeHtml(arquivos[1].name)}`
 
     const texto1 = await lerArquivo(arquivos[0])
     const texto2 = await lerArquivo(arquivos[1])
@@ -179,6 +411,10 @@
     compararNotas(notas1, notas2)
   })
 
+  // Alternar tema claro/escuro
+  document.getElementById('toggleTheme').addEventListener('click', () => {
+    document.body.classList.toggle('dark')
+  })
 </script>
 
 </body>
